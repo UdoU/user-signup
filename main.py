@@ -61,12 +61,12 @@ class Index(webapp2.RequestHandler):
             <br>
             <label>
                 Password:
-                <input type="text" name="PW"/>
+                <input type="password" name="PW"/>
             </label>
             <br>
             <label>
                 Verify Password:
-                <input type="text" name="VPW"/>
+                <input type="password" name="VPW"/>
             </label>
             <br>
             <input type="submit" value="Submit"/>
@@ -87,10 +87,17 @@ class SignUp(webapp2.RequestHandler):
 
     def post(self):
         # look inside the request to figure out what the user typed
-        username = self.request.get("username")
-
         # 'escape' the user's input so that if they typed HTML, it doesn't mess up our site
+        # if the user wants to add a password that doesnt work
+        username = self.request.get("username")
         username = cgi.escape(username, quote=True)
+        PW = self.request.get("PW")
+        VPW = self.request.get("VPW")
+        PW = cgi.escape(PW, quote=True)
+        VPW = cgi.escape(VPW, quote=True)
+        Email = self.request.get("Email")
+        Email = cgi.escape(Email, quote=True)
+        params = dict(username = username, Email = Email)
 
         # if the user typed nothing at all, redirect and yell at them
         if username == "":
@@ -102,12 +109,9 @@ class SignUp(webapp2.RequestHandler):
             errormessage = "That username doesn't work"
             self.redirect("/?error=" + errormessage)
 
-        # if the user wants to add a password that doesnt work
-        PW = self.request.get("PW")
-        VPW = self.request.get("VPW")
-        PW = cgi.escape(PW, quote=True)
-        VPW = cgi.escape(VPW, quote=True)
 
+
+        params = dict(username = username, Email = Email)
         #check for a password
         if PW == "":
             errormessage = "Password"
@@ -121,16 +125,14 @@ class SignUp(webapp2.RequestHandler):
         #validate password
         if not valid_password(PW):
             errormessage = "That password doesn't work"
-            self.redirect("/?error=" + errormessage)
-
-        Email = self.request.get("Email")
+            have_error = True
+            self.redirect("/?error=" + errormessage, **params)
 
         #validate email
         if not valid_email(Email):
             errormessage = "That email doesn't work"
-            self.redirect("/?error=" + errormessage)
+            self.redirect("/?error=" + errormessage, **params)
 
-        Email = cgi.escape(Email, quote=True)
 
         # build response content
         Welcome = "<strong>Welcome!</strong>"
